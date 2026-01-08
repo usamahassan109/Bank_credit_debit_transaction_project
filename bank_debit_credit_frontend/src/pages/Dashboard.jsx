@@ -1,65 +1,38 @@
-import { useState, useContext } from "react";
-import { AuthContext } from "../context/AuthContext";
-import { addTransaction } from "../api/transaction.api";
+import { useEffect, useState, useContext } from "react";
+import { AuthContext } from "../context/AuthContext.jsx";
+import { getProfile } from "../api/user.api.js";
+import ProfileCard from "../components/ProfileCard.jsx";
+import TransactionForm from "../components/TransactionForm.jsx";
+import TransactionList from "../components/TransactionList.jsx";
+import "../styles/dashboard.css"; // 🔹 import CSS
 
 export default function Dashboard() {
   const { logout } = useContext(AuthContext);
-  const [tx, setTx] = useState({
-    product_name: "",
-    amount: "",
-    transaction_type: "credit",
-  });
+  const [user, setUser] = useState(null);
+  const [transactions, setTransactions] = useState([]);
 
-  const submit = async () => {
-    if (!tx.product_name || !tx.amount) {
-      alert("All fields required");
-      return;
-    }
-
+  const fetchData = async () => {
     try {
-      await addTransaction({
-        ...tx,
-        amount: Number(tx.amount),
-      });
-      alert("Transaction added");
-      setTx({ product_name: "", amount: "", transaction_type: "credit" });
+      const data = await getProfile();
+      setUser(data.user);
+      setTransactions(data.transactions);
     } catch (err) {
-      alert("Error adding transaction");
+      console.error(err);
     }
   };
 
+  useEffect(() => {
+    fetchData();
+  }, []);
+
   return (
-    <div>
-      <h2>Dashboard</h2>
+    <div className="dashboard-container">
+      <button className="logout-btn" onClick={logout}>Logout</button>
+      <ProfileCard user={user} />
 
-      <button onClick={logout}>Logout</button>
+      <TransactionForm onTransactionAdded={fetchData} />
 
-      <h3>Add Transaction</h3>
-
-      <input
-        placeholder="Product Name"
-        value={tx.product_name}
-        onChange={(e) => setTx({ ...tx, product_name: e.target.value })}
-      />
-
-      <input
-        placeholder="Amount"
-        type="number"
-        value={tx.amount}
-        onChange={(e) => setTx({ ...tx, amount: e.target.value })}
-      />
-
-      <select
-        value={tx.transaction_type}
-        onChange={(e) =>
-          setTx({ ...tx, transaction_type: e.target.value })
-        }
-      >
-        <option value="credit">Credit</option>
-        <option value="debit">Debit</option>
-      </select>
-
-      <button onClick={submit}>Add</button>
+      <TransactionList transactions={transactions} />
     </div>
   );
 }

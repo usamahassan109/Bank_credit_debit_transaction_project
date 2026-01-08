@@ -1,4 +1,6 @@
-import api from "./axios";
+import api from "./axios.js";
 
-export const addTransaction = (data) =>
-  api.post("/transactions/add", data);
+export const addTransaction = async (data) => {
+  const res = await api.post("/transactions/add", data);
+  return res.data;
+};

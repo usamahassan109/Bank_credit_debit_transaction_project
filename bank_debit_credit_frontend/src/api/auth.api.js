@@ -1,12 +1,21 @@
-import api from "./axios";
+import api from "./axios.js";
 
-// Signup API
-export const signup = (data) => api.post("/auth/signup", data);
+export const loginApi = async ({ username, password }) => {
+  const formData = new URLSearchParams();
+  formData.append("username", username);
+  formData.append("password", password);
 
-// Login API (OAuth2 requires form-data)
-export const login = (email, password) => {
-  const form = new FormData();
-  form.append("username", email);
-  form.append("password", password);
-  return api.post("/auth/login", form);
+  const res = await api.post("/auth/login", formData, {
+    headers: {
+      "Content-Type": "application/x-www-form-urlencoded",
+    },
+  });
+
+  return res.data;
+};
+
+
+export const signupApi = async (data) => {
+  const res = await api.post("/auth/signup", data);
+  return res.data;
 };

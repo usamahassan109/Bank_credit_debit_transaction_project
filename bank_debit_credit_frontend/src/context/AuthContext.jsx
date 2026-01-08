@@ -1,44 +1,25 @@
 import { createContext, useState } from "react";
-import { login as loginAPI, signup as signupAPI } from "../api/auth.api";
+import { useNavigate } from "react-router-dom";
 
 export const AuthContext = createContext();
 
 export default function AuthProvider({ children }) {
-  const [user, setUser] = useState(() => {
-    const token = localStorage.getItem("token");
-    return token ? { token } : null;
-  });
+  const [token, setToken] = useState(localStorage.getItem("token"));
+  const navigate = useNavigate();
 
-  const login = async (email, password) => {
-    try {
-      const res = await loginAPI(email, password);
-      localStorage.setItem("token", res.data.access_token);
-      setUser({ token: res.data.access_token, email });
-      return true;
-    } catch (err) {
-      alert("Login failed: " + (err.response?.data?.detail || err.message));
-      return false;
-    }
-  };
-
-  const signup = async (data) => {
-    try {
-      await signupAPI(data);
-      alert("Signup successful! Please login.");
-      return true;
-    } catch (err) {
-      alert("Signup failed: " + (err.response?.data?.detail || err.message));
-      return false;
-    }
+  const login = (newToken) => {
+    localStorage.setItem("token", newToken);
+    setToken(newToken);
   };
 
   const logout = () => {
     localStorage.removeItem("token");
-    setUser(null);
+    setToken(null);
+    navigate("/login");
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, signup, logout }}>
+    <AuthContext.Provider value={{ token, login, logout }}>
       {children}
     </AuthContext.Provider>
   );
